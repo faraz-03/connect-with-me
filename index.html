@@ -288,6 +288,98 @@ body.wa-overlay-open{overflow:hidden}
 @media(max-width:520px){.wa-overlay-sheet{padding:12px!important;align-items:center!important}.wa-overlay-phone{width:min(100%,356px)!important;height:auto!important;max-height:94dvh!important;border-radius:22px!important}.wa-app-overlay-shell{max-height:94dvh!important}.wa-topbar{padding-top:8px!important}}
 @media(max-height:620px){.wa-overlay-phone,.wa-app-overlay-shell{max-height:95dvh!important}.wa-chat-canvas-overlay{padding-top:7px!important;padding-bottom:7px!important}.wa-greeting-notice{margin-bottom:7px!important}}
 
+
+/* V13 — iPhone keyboard-aware overlay: use the *visible* viewport, not the page viewport. */
+.wa-overlay{
+  inset:auto!important;
+  top:var(--wa-vtop,0px)!important;
+  left:var(--wa-vleft,0px)!important;
+  width:var(--wa-vwidth,100vw)!important;
+  height:var(--wa-vheight,100dvh)!important;
+  overflow:hidden;
+  overscroll-behavior:contain;
+}
+.wa-overlay-sheet{
+  inset:0!important;
+  min-height:0;
+  height:100%;
+  overflow:hidden;
+  padding:12px!important;
+}
+.wa-overlay-phone{
+  max-height:calc(var(--wa-vheight,100dvh) - 24px)!important;
+  min-height:0;
+  height:auto!important;
+}
+.wa-app-overlay-shell{
+  min-height:0;
+  max-height:calc(var(--wa-vheight,100dvh) - 24px)!important;
+}
+.wa-chat-canvas-overlay{
+  min-height:0;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+}
+.wa-input-dock{min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+/* During typing, prioritize the fields and primary CTA; the preview returns when keyboard closes. */
+.wa-overlay.wa-keyboard-open .wa-overlay-sheet{padding:6px!important}
+.wa-overlay.wa-keyboard-open .wa-overlay-phone,
+.wa-overlay.wa-keyboard-open .wa-app-overlay-shell{
+  max-height:calc(var(--wa-vheight,100dvh) - 12px)!important;
+}
+.wa-overlay.wa-keyboard-open .wa-chat-canvas-overlay{display:none!important}
+.wa-overlay.wa-keyboard-open .wa-topbar{min-height:43px!important}
+.wa-overlay.wa-keyboard-open .wa-input-dock{padding:7px 9px 9px!important}
+.wa-overlay.wa-keyboard-open .wa-compose-stack textarea{
+  height:40px!important;
+  min-height:40px!important;
+  max-height:68px!important;
+}
+.wa-overlay.wa-keyboard-open .wa-compose-stack input{min-height:36px!important}
+.wa-overlay.wa-keyboard-open .wa-compose-footer{padding-top:0!important}
+/* Larger text inputs remain 16px, preventing Safari's focus zoom. */
+.wa-overlay input,.wa-overlay textarea{font-size:16px!important}
+@media(prefers-reduced-motion:reduce){.wa-overlay-phone{animation:none!important;opacity:1!important;transform:none!important}}
+
+
+/* Keep the review action reachable even when optional meeting context expands. */
+.wa-overlay.wa-keyboard-open .wa-compose-footer{
+  position:sticky;
+  bottom:0;
+  z-index:2;
+  background:#f5f6f7;
+  justify-content:flex-end;
+  padding:6px 0 2px!important;
+}
+.wa-overlay.wa-keyboard-open .wa-footer-note{display:none!important}
+
+
+/* V14: Only ask for a name up front. Meeting details and message are both optional. */
+.wa-meeting-field{display:flex;flex-direction:column;gap:8px;padding:5px 0 2px}
+.wa-meeting-field textarea{min-height:60px;max-height:100px;resize:vertical}
+.wa-meeting-extra>summary{min-height:32px;padding:7px 4px;color:#087e5a;touch-action:manipulation}
+.wa-meeting-extra[open]>summary{margin-bottom:4px}
+.wa-meeting-extra summary:focus-visible{outline:2px solid #007aff;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){.wa-meeting-extra>summary span{transition:none}}
+
+
+/* V15: clearer minimal interaction, accessible touch targets and message preview. */
+.wa-preview-bubble[hidden]{display:none!important}
+.wa-compose-stack input{min-height:44px!important}
+.wa-meeting-extra>summary{min-height:44px!important;display:flex;align-items:center;padding:10px 7px!important;font-size:13px!important}
+.wa-meeting-field textarea{min-height:64px!important}
+.wa-compose-footer{justify-content:stretch!important}
+.whatsapp-send-compact{width:100%!important;min-height:46px!important;height:46px!important;justify-content:center!important;font-size:13px!important;letter-spacing:.005em;box-shadow:none!important}
+.wa-overlay .ios-back-btn{width:44px!important;height:44px!important;flex:0 0 44px!important;margin-left:-6px}
+.wa-overlay .wa-chat-meta{flex:1}
+.wa-overlay .wa-topbar{min-height:58px!important}
+.wa-overlay .wa-avatar{flex-shrink:0}
+.wa-footer-note{display:none!important}
+.wa-overlay.wa-keyboard-open .wa-compose-stack input{min-height:44px!important}
+.copy-value{min-height:44px;display:inline-flex;align-items:center}
+.wa-compose-stack textarea:focus-visible,.wa-compose-stack input:focus-visible{outline-offset:0}
+@media(max-height:480px){.wa-overlay.wa-keyboard-open .wa-topbar{min-height:44px!important}}
+
 </style>
 </head>
 <body>
@@ -304,7 +396,7 @@ body.wa-overlay-open{overflow:hidden}
 </section>
 
 </main><div id="whatsappOverlay" class="wa-overlay" hidden>
-  <button class="wa-overlay-backdrop" id="closeWhatsAppOverlayBackdrop" type="button" aria-label="Close WhatsApp message overlay"></button>
+  <button class="wa-overlay-backdrop" id="closeWhatsAppOverlayBackdrop" type="button" tabindex="-1" aria-label="Close WhatsApp message overlay"></button>
   <section class="wa-overlay-sheet" role="dialog" aria-modal="true" aria-labelledby="waOverlayTitle">
     <div class="wa-overlay-phone">
       <div class="wa-app-shell wa-app-overlay-shell">
@@ -312,25 +404,28 @@ body.wa-overlay-open{overflow:hidden}
           <button type="button" class="ios-back-btn" id="closeWhatsAppOverlay" aria-label="Close WhatsApp message screen"><span class="ios-back" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m15 4-8 8 8 8"/></svg></span></button>
           <span class="wa-avatar">F</span>
           <div class="wa-chat-meta"><strong id="waOverlayTitle">Faraz</strong><small>WhatsApp preview · not sent</small></div>
-          <span class="ios-video" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="14" height="12" rx="4"/><path d="m16 10 6-3v10l-6-3"/></svg></span>
+          
         </div>
         <div class="wa-chat-canvas wa-chat-canvas-overlay">
           
           <div class="wa-greeting-notice" role="note">Hey there! 👋 Glad we connected. Your turn to say hi!</div>
-          <div class="wa-preview-bubble" id="waPreviewBubble">Hey Faraz! 👋 I&#39;m [Your name].
-
-Great meeting you! Let’s stay in touch.</div>
+          <div class="wa-preview-bubble" id="waPreviewBubble" hidden></div>
         </div>
         <div class="wa-input-dock">
           <form id="whatsappForm" class="wa-compose-form">
             <div class="wa-compose-card">
               <div class="wa-compose-stack">
                 <input id="visitorName" type="text" name="name" autocomplete="name" placeholder="Your name" maxlength="80" required aria-label="Your name">
-                <textarea id="visitorMessage" name="message" placeholder="Your message (optional)" maxlength="350" aria-label="Your message, optional"></textarea>
-                <details class="wa-meeting-extra" id="waMeetingExtra"><summary>Add where we met <span aria-hidden="true">＋</span></summary><div class="wa-meeting-field"><input id="metAt" type="text" name="metAt" placeholder="Event, café, or place (optional)" maxlength="130" aria-label="Where did we meet? Optional"></div></details>
+                <details class="wa-meeting-extra" id="waMeetingExtra">
+                  <summary>Personalize your hello <span aria-hidden="true">＋</span></summary>
+                  <div class="wa-meeting-field">
+                    <input id="metAt" type="text" name="metAt" placeholder="Where did we meet? (optional)" maxlength="130" aria-label="Where did we meet? Optional">
+                    <textarea id="visitorMessage" name="message" placeholder="Your message (optional)" maxlength="350" aria-label="Your message, optional"></textarea>
+                  </div>
+                </details>
               </div>
               <div class="wa-compose-footer">
-                <p class="whatsapp-small wa-footer-note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg> You’ll press Send in WhatsApp</p>
+                
                 <button class="whatsapp-send whatsapp-send-compact" type="submit" aria-label="Open WhatsApp to review message"><span class="wa-send-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 3 3.7 10.2c-.9.4-.8 1.7.1 2l4.9 1.8 1.8 4.9c.3.9 1.6 1 2 .1L21 3Z"/><path d="M8.5 13.5 21 3"/></svg></span><span>Review in WhatsApp</span><span aria-hidden="true">↗</span></button>
               </div>
             </div>
@@ -362,41 +457,113 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&$('help').o
 
 // Compose the visitor's introduction locally; sending always requires their action in WhatsApp.
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function formatMeetingContext(raw){
+  const location=raw.trim().replace(/[.!?]+$/,'');
+  if(!location)return '';
+  // Preserve places that already include their own preposition.
+  if(/^(at|in|on|during|near|outside|around|via|through|over)\b/i.test(location)) return `We met ${location}.`;
+  // City-style values read better with “in”; meetings, offices and events use “at”.
+  const isCity=/^(Mumbai|Delhi|New Delhi|Bengaluru|Bangalore|Pune|Hyderabad|Chennai|Kolkata|Ahmedabad|Jaipur|Kochi|Kozhikode|Thiruvananthapuram|Navi Mumbai)(?:,|$)/i.test(location);
+  return `We met ${isCity?'in':'at'} ${location}.`;
+}
 function currentWaMessage(){
-  const name=$('visitorName').value.trim() || '[Your name]';
+  const name=$('visitorName').value.trim();
   const where=$('metAt').value.trim();
   const extra=$('visitorMessage').value.trim();
-  return [`Hey Faraz! 👋 I'm ${name}.`, where?`We met ${where}.`:'', extra || 'Great meeting you! Let’s stay in touch.'].filter(Boolean).join('\n\n');
+  return [`Hey Faraz! 👋 I'm ${name}.`,formatMeetingContext(where),extra || 'Great meeting you! Let’s stay in touch.'].filter(Boolean).join('\n\n');
 }
 function refreshWaPreview(){
   const bubble=$('waPreviewBubble');
-  if(!bubble) return;
-  bubble.innerHTML = escapeHtml(currentWaMessage()).replace(/\n/g,'<br>');
+  const hasName=!!$('visitorName').value.trim();
+  bubble.hidden=!hasName;
+  bubble.textContent=hasName?currentWaMessage():'';
 }
 ['visitorName','metAt','visitorMessage'].forEach(id=>$(id).addEventListener('input', refreshWaPreview));
 refreshWaPreview();
 
+// iOS Safari keeps fixed elements in the layout viewport while the keyboard shrinks
+// the visual viewport. Track its size and offset so the overlay remains above the keyboard.
+let waInitialViewportHeight = 0;
+let waViewportFrame = 0;
+function fitWhatsAppToViewport(){
+  const overlay = $('whatsappOverlay');
+  if(overlay.hidden) return;
+  const visual = window.visualViewport;
+  const height = visual ? visual.height : window.innerHeight;
+  const width = visual ? visual.width : window.innerWidth;
+  const top = visual ? visual.offsetTop : 0;
+  const left = visual ? visual.offsetLeft : 0;
+  overlay.style.setProperty('--wa-vheight', `${height}px`);
+  overlay.style.setProperty('--wa-vwidth', `${width}px`);
+  overlay.style.setProperty('--wa-vtop', `${top}px`);
+  overlay.style.setProperty('--wa-vleft', `${left}px`);
+  const editing = overlay.contains(document.activeElement) &&
+    document.activeElement.matches('input, textarea');
+  const keyboardVisible = editing && waInitialViewportHeight - height > 125;
+  overlay.classList.toggle('wa-keyboard-open', keyboardVisible);
+}
+function requestWhatsAppViewportFit(){
+  cancelAnimationFrame(waViewportFrame);
+  waViewportFrame = requestAnimationFrame(fitWhatsAppToViewport);
+}
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize',requestWhatsAppViewportFit);
+  window.visualViewport.addEventListener('scroll',requestWhatsAppViewportFit);
+}
+window.addEventListener('resize',requestWhatsAppViewportFit);
+window.addEventListener('orientationchange',requestWhatsAppViewportFit);
+let lastFocusBeforeWhatsApp=null;
 function openWhatsAppOverlay(){
-  $('whatsappOverlay').hidden=false;
+  const overlay=$('whatsappOverlay');
+  lastFocusBeforeWhatsApp=document.activeElement;
+  waInitialViewportHeight=window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  $('help').open=false;
+  overlay.hidden=false;
   document.body.classList.add('wa-overlay-open');
-  setTimeout(()=>{$('visitorName').focus();},30);
+  // Make the background unavailable to keyboard users and screen readers.
+  document.querySelector('main.shell').inert=true;
+  // Start on the close control. Deliberately do not open the iPhone keyboard.
+  $('closeWhatsAppOverlay').focus({preventScroll:true});
+  fitWhatsAppToViewport();
 }
 function closeWhatsAppOverlay(){
-  $('whatsappOverlay').hidden=true;
+  const overlay=$('whatsappOverlay');
+  if(overlay.hidden)return;
+  if(overlay.contains(document.activeElement))document.activeElement.blur();
+  overlay.hidden=true;
+  overlay.classList.remove('wa-keyboard-open');
   document.body.classList.remove('wa-overlay-open');
-  $('openWhatsAppOverlay').focus();
+  document.querySelector('main.shell').inert=false;
+  const target=lastFocusBeforeWhatsApp && lastFocusBeforeWhatsApp.isConnected ? lastFocusBeforeWhatsApp : $('openWhatsAppOverlay');
+  target.focus({preventScroll:true});
+  lastFocusBeforeWhatsApp=null;
 }
+['visitorName','visitorMessage','metAt'].forEach(id => {
+  $(id).addEventListener('focus',requestWhatsAppViewportFit);
+  $(id).addEventListener('blur',()=>setTimeout(requestWhatsAppViewportFit,80));
+});
 $('openWhatsAppOverlay').addEventListener('click', openWhatsAppOverlay);
 $('closeWhatsAppOverlay').addEventListener('click', closeWhatsAppOverlay);
 $('closeWhatsAppOverlayBackdrop').addEventListener('click', closeWhatsAppOverlay);
-document.addEventListener('keydown',event=>{if(event.key==='Escape' && !$('whatsappOverlay').hidden) closeWhatsAppOverlay();});
+document.addEventListener('keydown',event=>{
+  const overlay=$('whatsappOverlay');
+  if(overlay.hidden)return;
+  if(event.key==='Escape'){event.preventDefault();closeWhatsAppOverlay();return;}
+  if(event.key!=='Tab')return;
+  const candidates=[...overlay.querySelectorAll('button:not([disabled]):not([tabindex="-1"]), input:not([disabled]), textarea:not([disabled]), summary')]
+    .filter(el=>el.getClientRects().length && getComputedStyle(el).visibility!=='hidden');
+  if(!candidates.length)return;
+  const first=candidates[0],last=candidates[candidates.length-1];
+  if(event.shiftKey && (document.activeElement===first || !overlay.contains(document.activeElement))){event.preventDefault();last.focus();}
+  else if(!event.shiftKey && (document.activeElement===last || !overlay.contains(document.activeElement))){event.preventDefault();first.focus();}
+});
 
 $('whatsappForm').addEventListener('submit',event=>{
   event.preventDefault();
   const name=$('visitorName').value.trim();
   if(!name){$('visitorName').focus();return;}
   const phone=CONTACT.phone.replace(/\D/g,'');
-  window.location.assign(`https://wa.me/${phone}?text=${encodeURIComponent(currentWaMessage().replace('[Your name]', name))}`);
+  window.location.assign(`https://wa.me/${phone}?text=${encodeURIComponent(currentWaMessage())}`);
 });
 
 // Clipboard requires a secure context on many browsers; fall back to selection and copy.
